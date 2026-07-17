@@ -1,0 +1,16 @@
+# Build output (regenerated with the commands in the README)
+/build/
+
+#.venv folder
+/.venv/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+*Zone.Identifier

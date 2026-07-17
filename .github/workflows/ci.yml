@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-verify:
+    name: Build & verify demos (C++)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y cmake g++
+
+      - name: Configure & build
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --parallel
+
+      - name: Run demos
+        working-directory: build
+        run: |
+          set -euo pipefail
+          ./demo_spectrogram ../data/aec_test_sr.wav spectrogram.pgm
+          ./demo_filter      ../data/aec_test_sr.wav filtered.wav
+          ./demo_aec         ../data/aec_in_far.wav mic_echo.wav echo_cancelled.wav | tee aec.log
+
+      - name: Verify outputs
+        working-directory: build
+        run: |
+          set -euo pipefail
+          # 1. Every demo must produce a non-empty output file.
+          for f in spectrogram.pgm filtered.wav mic_echo.wav echo_cancelled.wav; do
+            test -s "$f" || { echo "::error::missing or empty output: $f"; exit 1; }
+          done
+          # 2. Echo cancellation must actually work: ERLE above threshold.
+          erle=$(awk '/^ERLE/ { print $(NF-1) }' aec.log)
+          echo "Measured ERLE = ${erle} dB"
+          awk -v e="$erle" 'BEGIN {
+            if (e == "" || e+0 < 40) {
+              print "::error::ERLE " e " dB is below the 40 dB threshold"; exit 1
+            }
+          }'
+          echo "All checks passed."
+
+      - name: Upload demo outputs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demo-outputs
+          path: |
+            build/spectrogram.pgm
+            build/filtered.wav
+            build/mic_echo.wav
+            build/echo_cancelled.wav
+
+  spectrogram:
+    name: Render spectrogram (Python)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Python deps
+        run: pip install -r scripts/requirements.txt
+
+      - name: Render spectrogram
+        run: python3 scripts/plot_spectrogram.py data/aec_test_sr.wav spectrogram.png
+
+      - name: Verify image
+        run: test -s spectrogram.png || { echo "::error::spectrogram.png not generated"; exit 1; }
+
+      - name: Upload spectrogram
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectrogram-png
+          path: spectrogram.png

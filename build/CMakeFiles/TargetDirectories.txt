@@ -1,5 +1,0 @@
-/home/npchau/dsp-toolkit/build/CMakeFiles/demo_spectrogram.dir
-/home/npchau/dsp-toolkit/build/CMakeFiles/demo_filter.dir
-/home/npchau/dsp-toolkit/build/CMakeFiles/demo_aec.dir
-/home/npchau/dsp-toolkit/build/CMakeFiles/edit_cache.dir
-/home/npchau/dsp-toolkit/build/CMakeFiles/rebuild_cache.dir
