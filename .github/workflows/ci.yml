@@ -7,8 +7,11 @@ on:
     branches: [main]
 
 jobs:
-  build-and-verify:
-    name: Build & verify demos (C++)
+  # ---------------------------------------------------------------------------
+  # Stage 1 — BUILD: compile the C++ demos with CMake, hand binaries downstream.
+  # ---------------------------------------------------------------------------
+  build:
+    name: "Stage 1 · Build (C++ / CMake)"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -20,6 +23,35 @@ jobs:
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --parallel
+
+      - name: Upload built binaries
+        uses: actions/upload-artifact@v7
+        with:
+          name: demo-binaries
+          path: |
+            build/demo_spectrogram
+            build/demo_filter
+            build/demo_aec
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Stage 2 — TEST: run the compiled demos and verify their results.
+  # ---------------------------------------------------------------------------
+  test:
+    name: "Stage 2 · Test (run C++ demos)"
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download built binaries
+        uses: actions/download-artifact@v8
+        with:
+          name: demo-binaries
+          path: build
+
+      - name: Make binaries executable
+        run: chmod +x build/demo_spectrogram build/demo_filter build/demo_aec
 
       - name: Run demos
         working-directory: build
@@ -49,7 +81,7 @@ jobs:
 
       - name: Upload demo outputs
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: demo-outputs
           path: |
@@ -58,8 +90,12 @@ jobs:
             build/mic_echo.wav
             build/echo_cancelled.wav
 
-  spectrogram:
-    name: Render spectrogram (Python)
+  # ---------------------------------------------------------------------------
+  # Stage 3 — VISUALIZE: render the colour spectrogram with the Python helper.
+  # ---------------------------------------------------------------------------
+  visualize:
+    name: "Stage 3 · Visualize (Python spectrogram)"
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -79,7 +115,7 @@ jobs:
 
       - name: Upload spectrogram
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: spectrogram-png
           path: spectrogram.png
