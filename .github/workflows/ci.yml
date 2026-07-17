@@ -95,7 +95,7 @@ jobs:
   # ---------------------------------------------------------------------------
   visualize:
     name: "Stage 3 · Visualize (Python spectrogram)"
-    needs: build
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
