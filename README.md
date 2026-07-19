@@ -1,4 +1,5 @@
 # DSP Toolkit — Audio Signal Processing Fundamentals in Modern C++
+[![CI](https://github.com/ph0123/DSP-Fundamentals-Toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/ph0123/DSP-Fundamentals-Toolkit/actions/workflows/ci.yml)
 
 From-scratch implementations of the core building blocks of real-time audio
 processing — no external DSP libraries. Built as a learning-in-public project
