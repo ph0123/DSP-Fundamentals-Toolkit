@@ -133,4 +133,4 @@ The point here was to be able to answer *why*, not just *how*:
 
 ## License
 
-MIT
+This project is licensed under the [MIT License](LICENSE).
