@@ -1,0 +1,6 @@
+# Python dependencies for scripts/plot_spectrogram.py
+# Need to install python3 and pip first
+# Install with:  pip install -r requirements.txt
+numpy>=1.21
+scipy>=1.7
+matplotlib>=3.5

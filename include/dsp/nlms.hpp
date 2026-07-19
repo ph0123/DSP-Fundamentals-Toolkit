@@ -10,7 +10,14 @@ namespace dsp {
 //   output e = d - y_hat  -> echo removed, near-end speech remains
 class Nlms {
 public:
-    Nlms(size_t taps, float mu = 0.5f, float eps = 1e-6f)
+    // mu  : step size, 0 < mu < 2 for stability (0.5–1.0 is typical).
+    // eps : regularization delta added to ||x||^2. It is NOT just a
+    //       divide-by-zero guard — it is the *floor* on the denominator.
+    //       If it is too small, then whenever the reference goes quiet
+    //       (||x||^2 -> 0) the update gain mu*e/||x||^2 explodes and the
+    //       weights diverge. For audio normalized to [-1, 1], 1e-3 is a
+    //       safe floor; raise it if the reference is very low level.
+    Nlms(size_t taps, float mu = 0.5f, float eps = 1e-3f)
         : w_(taps, 0.0f), x_(taps, 0.0f), mu_(mu), eps_(eps) {}
 
     float process(float x_new, float d) {
